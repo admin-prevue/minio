@@ -74,6 +74,13 @@ spec:
               - key: {{ .Values.tls.publicCrt }}
                 path: CAs/public.crt
         {{ end }}
+      initContainers:
+        - name: init-{{ .Release.Name }}-await-minio-svc
+          image: busybox:1.28
+          command: 
+          - 'sh'
+          - '-c'
+          - {{ cat "until nc -zv " ( include "minio.fullname" . ) .Values.minioAPIPort "; do echo waiting for minio; sleep 2; done" }}
       containers:
         {{- if .Values.buckets }}
         - name: minio-make-bucket
